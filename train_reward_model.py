@@ -2,31 +2,26 @@ from transformers import GPT2TokenizerFast, AutoModelForSequenceClassification, 
 from datasets import load_from_disk
 from trl import RewardTrainer, RewardConfig
 from peft import LoraConfig, TaskType
+import numpy as np
 
-
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+# tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-model = AutoModelForSequenceClassification.from_pretrained("gpt2")
+model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased")
+
+print(model)
 
 def main():
     train_dataset = load_from_disk('./data/train_dataset')
     val_dataset = load_from_disk('./data/val_dataset')
     test_dataset = load_from_disk('./data/test_dataset')
 
-    train_dataset = train_dataset[0:9]
-    test_dataset = test_dataset[0:9]
-    val_dataset = val_dataset[0:9]
-
-    # train_dataset = train_dataset.remove_columns(["chosen","rejected"])
-    # val_dataset = val_dataset.remove_columns(["chosen","rejected"])
-
-    print(train_dataset.keys())
-
     peft_config = LoraConfig(
         task_type=TaskType.SEQ_CLS,
         inference_mode=False,
         r=8,
         lora_alpha=32,
+        target_modules = ["q_lin","k_lin","v_lin","out_lin"],
         lora_dropout=0.1,
     )
 
@@ -51,7 +46,7 @@ def main():
         tokenizer=tokenizer,
         train_dataset=train_dataset,
         eval_dataset = val_dataset,
-        peft_config=peft_config,
+        peft_config=peft_config
     )
 
     trainer.train()

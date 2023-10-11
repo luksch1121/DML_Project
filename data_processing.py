@@ -1,8 +1,9 @@
-from transformers import GPT2TokenizerFast, AutoTokenizer
+from transformers import GPT2TokenizerFast, AutoTokenizer, BertTokenizerFast
 from datasets import load_dataset
 
 
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+# tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
 
@@ -17,6 +18,7 @@ def main():
 
     test_dataset = test_dataset.map(process_data, num_proc=6, batched=True)
 
+
     temp_dataset = temp_dataset.filter(
         lambda x: len(x["input_ids_chosen"]) <= 1024
         and len(x["input_ids_rejected"]) <= 1024,
@@ -29,8 +31,8 @@ def main():
         num_proc=6
     )
 
-    # temp_dataset = temp_dataset.remove_columns(["chosen","rejected"])
-    # test_dataset = test_dataset.remove_columns(["chosen","rejected"])
+    temp_dataset = temp_dataset.remove_columns(["chosen","rejected"])
+    test_dataset = test_dataset.remove_columns(["chosen","rejected"])
 
     train_dataset = temp_dataset['train']
 
@@ -44,6 +46,8 @@ def main():
 def process_data(data):
 
     data['chosen'], data['rejected'] = data['rejected'], data['chosen']
+
+
 
     new_data = {
         "input_ids_chosen": [],

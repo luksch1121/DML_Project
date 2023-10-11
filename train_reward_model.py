@@ -4,24 +4,25 @@ from trl import RewardTrainer, RewardConfig
 from peft import LoraConfig, TaskType
 import numpy as np
 
-# tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
+tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+# tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased")
+# model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased")
+model = AutoModelForSequenceClassification.from_pretrained("gpt2")
 
-print(model)
+# print(model)
 
 def main():
-    train_dataset = load_from_disk('./data/train_dataset')
-    val_dataset = load_from_disk('./data/val_dataset')
-    test_dataset = load_from_disk('./data/test_dataset')
-
+    train_dataset = load_from_disk('./data/train_dataset').select(range(100)) # Only using the first 100 samples
+    val_dataset = load_from_disk('./data/val_dataset').select(range(100))
+    test_dataset = load_from_disk('./data/test_dataset').select(range(100))
+    
     peft_config = LoraConfig(
         task_type=TaskType.SEQ_CLS,
         inference_mode=False,
         r=8,
         lora_alpha=32,
-        target_modules = ["q_lin","k_lin","v_lin","out_lin"],
+        # target_modules = ["q_lin","k_lin","v_lin","out_lin"],
         lora_dropout=0.1,
     )
 

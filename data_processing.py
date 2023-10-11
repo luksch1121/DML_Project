@@ -2,8 +2,8 @@ from transformers import GPT2TokenizerFast, AutoTokenizer, BertTokenizerFast
 from datasets import load_dataset
 
 
-# tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
+tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+# tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
 

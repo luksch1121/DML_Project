@@ -1,3 +1,4 @@
 output/
 .DS_store
 data/
+model/

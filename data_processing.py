@@ -3,6 +3,7 @@ from datasets import load_dataset
 
 
 tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+tokenizer.pad_token = tokenizer.eos_token
 # tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
@@ -56,8 +57,8 @@ def process_data(data):
         "attention_mask_rejected": [],
     }
     for chosen, rejected in zip(data["chosen"], data["rejected"]):
-        tokenized_chosen = tokenizer(chosen, truncation=True)
-        tokenized_rejected = tokenizer(rejected, truncation=True)
+        tokenized_chosen = tokenizer(chosen, truncation=True, padding = 'max_length')
+        tokenized_rejected = tokenizer(rejected, truncation=True, padding = 'max_length')
 
         new_data["input_ids_chosen"].append(tokenized_chosen["input_ids"])
         new_data["attention_mask_chosen"].append(tokenized_chosen["attention_mask"])

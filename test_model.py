@@ -1,17 +1,23 @@
-from transformers import GPT2TokenizerFast, AutoModelForSequenceClassification, GPT2Config, DataCollatorWithPadding, GPT2LMHeadModel, GPT2ForSequenceClassification
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, DataCollatorWithPadding, GPT2LMHeadModel, GPT2ForSequenceClassification, DistilBertForSequenceClassification
 from datasets import load_from_disk
 import numpy as np
 
 
-model = GPT2ForSequenceClassification.from_pretrained('./model',local_files_only=True, num_labels = 1)
+# model = GPT2ForSequenceClassification.from_pretrained('./model',local_files_only=True, num_labels = 1)
+model = DistilBertForSequenceClassification.from_pretrained('./model',local_files_only=True, num_labels = 1)
 # model = GPT2LMHeadModel.from_pretrained('./model',local_files_only=True)
 
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-tokenizer.pad_token = tokenizer.eos_token
+tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
+tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+# tokenizer.pad_token = tokenizer.eos_token
 
-test = tokenizer("Happy", return_tensors = "pt")
+test = tokenizer("Do not commit tax fraud", return_tensors = "pt")
 
 output  = model.forward(input_ids = test["input_ids"])
+# output  = model.generate(input_ids = test["input_ids"])
+
+# decoded = tokenizer.decode(output[0])
+# print(decoded)
 
 print(output.logits)
 

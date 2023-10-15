@@ -2,8 +2,8 @@ from transformers import GPT2TokenizerFast, AutoTokenizer, BertTokenizerFast
 from datasets import load_dataset
 
 
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
-tokenizer.pad_token = tokenizer.eos_token
+tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
+# tokenizer.pad_token = tokenizer.eos_token
 # tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
@@ -21,14 +21,14 @@ def main():
 
 
     temp_dataset = temp_dataset.filter(
-        lambda x: len(x["input_ids_chosen"]) <= 1024
-        and len(x["input_ids_rejected"]) <= 1024,
+        lambda x: len(x["input_ids_chosen"]) <= 512
+        and len(x["input_ids_rejected"]) <= 512,
         num_proc=6
     )
 
     test_dataset = test_dataset.filter(
-        lambda x: len(x["input_ids_chosen"]) <= 1024
-        and len(x["input_ids_rejected"]) <= 1024,
+        lambda x: len(x["input_ids_chosen"]) <= 512
+        and len(x["input_ids_rejected"]) <= 512,
         num_proc=6
     )
 

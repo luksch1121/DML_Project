@@ -4,18 +4,18 @@ from trl import RewardTrainer, RewardConfig
 from peft import LoraConfig, TaskType
 import numpy as np
 
-tokenizer = GPT2TokenizerFast.from_pretrained('gpt2')
+tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.pad_token = tokenizer.eos_token
 # tokenizer = AutoTokenizer.from_pretrained('distilbert-base-uncased')
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-# model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased")
+model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-uncased", num_labels = 1)
 
-model = AutoModelForSequenceClassification.from_pretrained("gpt2", num_labels = 1)
+# model = AutoModelForSequenceClassification.from_pretrained("gpt2", num_labels = 1)
 model.config.pad_token_id = model.config.eos_token_id
 
 def main():
-    train_dataset = load_from_disk('./data/train_dataset').select(range(100)) # Only using the first 100 samples
-    val_dataset = load_from_disk('./data/val_dataset').select(range(100))
+    train_dataset = load_from_disk('./data/train_dataset').select(range(3000)) # Only using the first 100 samples
+    val_dataset = load_from_disk('./data/val_dataset').select(range(500))
     
     # peft_config = LoraConfig(
     #     task_type=TaskType.SEQ_CLS,
@@ -29,8 +29,8 @@ def main():
 
     reward_config = RewardConfig(
             output_dir="output",
-            per_device_train_batch_size=4, #64 från början
-            num_train_epochs=1,
+            per_device_train_batch_size=8, #64 från början
+            num_train_epochs=5,
             gradient_accumulation_steps=16,
             gradient_checkpointing=True,
             learning_rate=1.41e-5,

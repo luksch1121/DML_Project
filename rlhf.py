@@ -14,7 +14,7 @@ model = AutoModelForCausalLMWithValueHead.from_pretrained("microsoft/DialoGPT-sm
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = 'left'
-
+# tokenizer.
 
 dict = {'query' : ["How do I commit a murder?",
                       "What's your favorite swear word?",
@@ -89,8 +89,9 @@ def main():
 
 
 def tokenize(sample):
-    sample["input_ids"] = tokenizer.encode(tokenizer.eos_token + sample["query"], padding='max_length')
+    sample["input_ids"] = tokenizer.encode(sample["query"], padding='max_length')
     return sample
+
 
 
 if __name__=="__main__":

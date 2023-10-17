@@ -10,7 +10,7 @@ tokenizer.add_special_tokens({'pad_token': '[PAD]'})
 
 def main():
 
-    dataset = load_dataset("Anthropic/hh-rlhf")
+    dataset = load_dataset("Anthropic/hh-rlhf", data_dir="harmless-base")
     test_dataset = dataset['test']
 
     temp_dataset = dataset['train'].train_test_split(test_size=0.1)

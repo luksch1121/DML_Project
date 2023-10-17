@@ -14,22 +14,24 @@ model = AutoModelForSequenceClassification.from_pretrained("distilbert-base-unca
 model.config.pad_token_id = model.config.eos_token_id
 
 def main():
-    train_dataset = load_from_disk('./data/train_dataset').select(range(3000)) # Only using the first 100 samples
-    val_dataset = load_from_disk('./data/val_dataset').select(range(500))
-    
-    # peft_config = LoraConfig(
-    #     task_type=TaskType.SEQ_CLS,
-    #     inference_mode=False,
-    #     r=8,
-    #     lora_alpha=32,
-    #     # target_modules = ["q_lin","k_lin","v_lin","out_lin"],
-    #     lora_dropout=0.1,
-    # )
+    train_dataset = load_from_disk('./data/train_dataset').select(range(6000)) # Only using the first 100 samples
+    val_dataset = load_from_disk('./data/val_dataset').select(range(2000))
     
 
+    print(train_dataset)
+    print(val_dataset)
+
+    peft_config = LoraConfig(
+        task_type=TaskType.SEQ_CLS,
+        inference_mode=False,
+        r=8,
+        lora_alpha=32,
+        lora_dropout=0.1,
+    )
+    
     reward_config = RewardConfig(
             output_dir="output",
-            per_device_train_batch_size=8, #64 från början
+            per_device_train_batch_size=16, #64 från början
             num_train_epochs=5,
             gradient_accumulation_steps=16,
             gradient_checkpointing=True,
@@ -48,8 +50,6 @@ def main():
         tokenizer=tokenizer,
         train_dataset=train_dataset,
         eval_dataset = val_dataset,
-        # peft_config=peft_config, maybe go slower with no peft?
-        # data_collator = DataCollatorWithPadding(tokenizer) # wRONG
     )
 
     trainer.train()

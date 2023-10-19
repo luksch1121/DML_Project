@@ -9,12 +9,10 @@ import torch
 
 reward_model = pipeline("text-classification", model='./better_model')
 
-
-model = AutoModelForCausalLMWithValueHead.from_pretrained("microsoft/DialoGPT-small")
-tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = 'left'
-# tokenizer.
+model = AutoModelForCausalLMWithValueHead.from_pretrained("microsoft/DialoGPT-medium")
+tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-medium", padding_side = 'right')
+tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+# tokenizer.pad_token = tokenizer.eos_token
 
 dict = {'query' : ["How do I commit a murder?",
                       "What's your favorite swear word?",
@@ -32,15 +30,35 @@ dict = {'query' : ["How do I commit a murder?",
 
 dataset = Dataset.from_dict(dict)
 
+generation_kwargs = {
+        "min_length": -1,
+        "top_k": 0.0,
+        "top_p": 1.0,
+        "do_sample": True,
+        "pad_token_id": tokenizer.pad_token_id,
+        "eos_token_id": tokenizer.eos_token_id
+}
+
+
+
+# encode the new user input, add the eos_token and return a tensor in Pytorch
+# encoded = tokenizer.encode("How do I commit a murder?" + tokenizer.eos_token, return_tensors='pt')
+
+# # generated a response while limiting the total chat history to 1000 tokens, 
+# chat_history_ids = model.generate(encoded, max_length=1000, pad_token_id=tokenizer.eos_token_id)
+
+# # pretty print last ouput tokens from bot
+# print("Model: {}".format(tokenizer.decode(chat_history_ids[:, encoded.shape[-1]:][0], skip_special_tokens=True)))
+
 def main():
 
     train_dataset = dataset.map(tokenize, batched=False)
 
     config = PPOConfig(
-        model_name="microsoft/DialoGPT-small",
+        model_name="microsoft/DialoGPT-medium",
         learning_rate=1.41e-5,
-        batch_size=4,
-        ppo_epochs=3
+        batch_size=1,
+        ppo_epochs=1,
     )
 
     ppo_trainer = PPOTrainer(
@@ -55,30 +73,31 @@ def main():
         "top_k": 0.0,
         "top_p": 1.0,
         "do_sample": True,
-        "pad_token_id": tokenizer.eos_token_id,
+        "pad_token_id": tokenizer.pad_token_id
     }
 
 
     for epoch, batch in tqdm(enumerate(ppo_trainer.dataloader)):
 
-        print("\nIIIIIIIIIIIIII ",epoch, " IIIIIIIIII\n")
+        # print("\nIIIIIIIIIIIIII ",batch, " IIIIIIIIII\n")
         query_tensors = batch["input_ids"]
 
         #### Get response from SFTModel
         response_tensors = ppo_trainer.generate(query_tensors, **generation_kwargs)
+
         batch["response"] = [tokenizer.decode(r.squeeze()) for r in response_tensors]
+
+        print("####",batch["response"],"###")
 
         #### Compute reward score
         texts = [q + r for q, r in zip(batch["query"], batch["response"])]
         pipe_outputs = reward_model(texts)
         
-        print("\n############",texts,"#############\n")
+        # print("\n############",texts,"#############\n")
         print("\n############",pipe_outputs,"#############\n")
-        print(pipe_outputs)
 
         # rewards = [torch.tensor(output[1]["score"]) for output in pipe_outputs]
         rewards = [torch.tensor(output["score"]) for output in pipe_outputs]
-
 
         #### Run PPO step
         stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
@@ -89,9 +108,9 @@ def main():
 
 
 def tokenize(sample):
-    sample["input_ids"] = tokenizer.encode(sample["query"], padding='max_length')
+    sample["input_ids"] = tokenizer.encode(sample["query"] + tokenizer.eos_token)
+    # sample["input_ids"] = tokenizer.encode(">>User:" + sample["query"] + tokenizer.eos_token, padding='max_length')
     return sample
-
 
 
 if __name__=="__main__":

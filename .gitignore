@@ -2,4 +2,5 @@ output/
 .DS_store
 data/
 model/
-better_model/
+reward_model/
+chat_model/
